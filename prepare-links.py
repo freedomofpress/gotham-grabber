@@ -27,7 +27,7 @@ def main():
     name = input("What is the name of the author? ")
     lastname = name.lower().split()[-1]
 
-    if not(os.path.exist(lastname)
+    if not(os.path.exists(lastname)):
         os.mkdir(lastname)
 
     args = parser.parse_args()
