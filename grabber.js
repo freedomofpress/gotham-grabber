@@ -20,7 +20,8 @@ if (filename.endsWith('.php')) {
         await page.goto(url);
     } catch (e) {
         console.log(e);
-        return
+        await browser.close();
+        return;
     }
 
     if (url.includes('dnainfo.com')) {
