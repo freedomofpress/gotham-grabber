@@ -4,6 +4,8 @@
 
 An outer Python script, `gotham-grabber.py`, takes an author page URL as an argument, creates a directory in the `out` subfolder where it runs, and saves a list of article URLs. It then invokes `grabber.js`, a node script that drives a headless Chrome instance to capture and format articles as PDFs.
 
+`grabber.js` can be invoked independently. It requires an argument with the flag `--url` and accepts an argument with the flag `--outdir`.
+
 Each script requires installation. To install, clone this repo and run:
 
 ```bash
