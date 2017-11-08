@@ -21,7 +21,8 @@ def scrape_ist_page(url):
     return marklinks
 
 def scrape_dnainfo_page(url, index=1):
-    res = requests.get(url + "/page/" + str(index))
+    scrape_url = url + "/page/" + str(index)
+    res = requests.get(scrape_url)
     soup = BeautifulSoup(res.text, "html.parser")
     links = ['https:' + link['href'] for link in soup.findAll('a',
              attrs = {'class':'headline'})]
@@ -54,8 +55,10 @@ def main():
             os.makedirs(dirname)
 
         if 'ist.com' in url:
+            print("Scraping Gothamist network page. This may take take a while.")
             links = scrape_ist_page(url)
         elif 'dnainfo.com' in url:
+            print("Scraping DNAinfo page. This may take a while.")
             links = scrape_dnainfo_page(url)
         else:
             print("Link must be to a page in the DNAinfo/Gothamist network.")
