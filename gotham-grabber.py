@@ -4,6 +4,7 @@ import argparse
 import os
 import requests
 import subprocess
+import urllib
 from bs4 import BeautifulSoup
 
 def get_ist_bookmarks(url, index=1):
@@ -25,23 +26,31 @@ def main():
 
     args = parser.parse_args()
 
-    name = input("What is the name of the author? ")
+    url = args.url
+    
+    slug = url.split("/")[-1]
 
-    filename = name.lower().replace(" ","-") + ".txt"
+    slug = urllib.parse.unquote(slug)
+    names = slug.lower().split()
+    name = names[-1]
 
-    dirname = os.path.join("out", name.lower().split()[-1])
+    filename = "-".join(names) + ".txt"
+
+    dirname = os.path.join("out", name)
 
     if not(os.path.exists(dirname)):
         os.makedirs(dirname)
 
-    links = scrape_ist_page(args.url, name)
+    links = scrape_ist_page(url, name)
 
     with open(os.path.join(dirname, filename), "w") as f:
         f.write('\n'.join(links))
 
     for link in links:
+        number = links.index(link) + 1
+        progress = "(" + str(number) + "/" + str(len(links)) + ")"
         command = ["node", "grabber.js", "--url", link, "--outdir", dirname]
-        print("Making a pdf of " + link)
+        print("Making a pdf of " + link + " " + progress)
         subprocess.run(command)
 
 if __name__ == "__main__":
