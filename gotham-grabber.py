@@ -30,7 +30,7 @@ def scrape_dnainfo_page(url, index=1):
     return links
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="A script for scraping and converting to PDF all of the articles by a given author in the DNAinfo/Gothamist network. Accepts either a URL to an online author page or a list of links to articles as input.")
     infile = parser.add_mutually_exclusive_group(required=True)
     infile.add_argument("-u","--url", help="The Gothamist network or DNAinfo URL for the author page with the links you want to collect", default=None)
     infile.add_argument("-t","--textfile", help="A list of links for the grabber script to convert to PDFs", default=None)
