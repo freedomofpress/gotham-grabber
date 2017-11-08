@@ -29,38 +29,47 @@ def scrape_dnainfo_page(url, index=1):
         links.extend(scrape_dnainfo_page(url, index + 1))
     return links
 
-
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("url", help="The Gothamist network or DNAinfo URL for the author page with the links you want to collect")
+    infile = parser.add_mutually_exclusive_group(required=True)
+    infile.add_argument("-u","--url", help="The Gothamist network or DNAinfo URL for the author page with the links you want to collect", default=None)
+    infile.add_argument("-t","--textfile", help="A list of links for the grabber script to convert to PDFs", default=None)
 
     args = parser.parse_args()
 
-    url = args.url
-    
-    slug = url.split("/")[-1]
+    if args.url:
+        url = args.url
+        
+        slug = url.split("/")[-1]
 
-    slug = urllib.parse.unquote(slug)
-    names = slug.lower().split()
-    name = names[-1]
+        slug = urllib.parse.unquote(slug)
+        names = slug.lower().split()
+        name = names[-1]
 
-    filename = "-".join(names) + ".txt"
+        filename = "-".join(names) + ".txt"
 
-    dirname = os.path.join("out", name)
+        dirname = os.path.join("out", name)
 
-    if not(os.path.exists(dirname)):
-        os.makedirs(dirname)
+        if not(os.path.exists(dirname)):
+            os.makedirs(dirname)
 
-    if 'ist.com' in url:
-        links = scrape_ist_page(url)
-    elif 'dnainfo.com' in url:
-        links = scrape_dnainfo_page(url)
-    else:
-        print("Link must be to a page in the DNAinfo/Gothamist network.")
-        return
+        if 'ist.com' in url:
+            links = scrape_ist_page(url)
+        elif 'dnainfo.com' in url:
+            links = scrape_dnainfo_page(url)
+        else:
+            print("Link must be to a page in the DNAinfo/Gothamist network.")
+            return
 
-    with open(os.path.join(dirname, filename), "w") as f:
-        f.write('\n'.join(links))
+        with open(os.path.join(dirname, filename), "w") as f:
+            f.write('\n'.join(links))
+
+    elif args.textfile:
+        filename = args.textfile
+        dirname = os.path.dirname(filename)
+
+        with open(filename, "r") as f:
+            links = f.read().splitlines()
 
     for link in links:
         number = links.index(link) + 1

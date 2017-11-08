@@ -17,7 +17,7 @@ if (filename.endsWith('.php')) {
     await page.setExtraHTTPHeaders({'Accept-Charset': 'utf-8'});
     
     try {
-        await page.goto(url, {timeout: 0});
+        await page.goto(url);
     } catch (e) {
         console.log(e);
         return
