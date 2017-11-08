@@ -1,10 +1,14 @@
-This is very ugly but it works for now. grabber.js is a script that uses Puppeteer to direct a headless Chrome to create a nice-looking PDF of a given url. It requires the arguments `--url`, the URL of the site you want to turn into a PDF, and `--outdir`, an existing directory in which to place that URL.
+# gotham grabber
 
-For the present purposes, this script is likely to be invoked programmatically. In my case, with a text file `TEXTFILE` containing a URL on each line, the following bash script may be helpful:
+`gotham-grabber` is a set of scripts that can take the URL of a writer page on a site in the Gothamist/DNAinfo network and produce a collection of attractive PDFs of each article. It was created after the sites were abruptly shut down on Thursday, November 2, 2017. The former editor-in-chief of one of the Gothamist sites, LAist, has [written about the significance of that shutdown](https://www.citylab.com/life/2017/11/gothamist-dnainfo-joe-ricketts-shutdown/545069/).
+
+An outer Python script, `gotham-grabber.py`, takes an author page URL as an argument, creates a directory in the `out` subfolder where it runs, and saves a list of article URLs. It then invokes `grabber.js`, a node script that drives a headless Chrome instance to capture and format articles as PDFs.
+
+Each script requires installation. To install, clone this repo and run:
 
 ```bash
-while read p; do
-echo printing $p;
-node grabber.js --url=$p --outdir=OUTDIR;
-done < TEXTFILE
+npm install
+pip install -r requirements.txt
 ```
+
+The scripts should then be ready to run.
