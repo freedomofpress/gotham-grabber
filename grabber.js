@@ -17,9 +17,10 @@ if (filename.endsWith('.php')) {
     await page.setExtraHTTPHeaders({'Accept-Charset': 'utf-8'});
     
     try {
-        await page.goto(url);
+        await page.goto(url, {'waitUntil':'networkidle'});
     } catch (e) {
         console.log(e);
+        process.exitCode = 1;
         await browser.close();
         return;
     }
@@ -29,7 +30,15 @@ if (filename.endsWith('.php')) {
     }
 
     await page.emulateMedia('screen');
+	try {
     await page.pdf({displayHeaderFooter: true, margin: {top: '.5in', bottom: '.5in', left: '.5in', right: '.5in'}, printBackground: true, path: outdir + '/' + filename + '.pdf'});
+	} catch (e) {
+        console.log(e);
+        process.exitCode = 1;
+        await browser.close();
+        return;
+    }
+
 
     await browser.close();
 })();

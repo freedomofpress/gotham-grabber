@@ -30,6 +30,13 @@ def scrape_dnainfo_page(url, index=1):
         links.extend(scrape_dnainfo_page(url, index + 1))
     return links
 
+def log_errors(url, dirname, error_bytes):
+    filename = "errors.log"
+    processed_error = error_bytes.decode('utf-8').split('\n')[0]
+    with open(os.path.join(dirname, filename), "a") as f:
+        f.write(url + '\n')
+        f.write(processed_error + '\n')
+
 def main():
     parser = argparse.ArgumentParser(description="A script for scraping and converting to PDF all of the articles by a given author in the DNAinfo/Gothamist network. Accepts either a URL to an online author page or a list of links to articles as input.")
     infile = parser.add_mutually_exclusive_group(required=True)
@@ -74,14 +81,21 @@ def main():
         with open(filename, "r") as f:
             links = f.read().splitlines()
 
+    errorcount = 0
+
     for link in links:
         number = links.index(link) + 1
         progress = "(" + str(number) + "/" + str(len(links)) + ")"
         command = ["node", "grabber.js", "--url", link, "--outdir", dirname]
         print("Making PDF of " + link + " " + progress)
-        subprocess.run(command)
+        process = subprocess.run(command, stdout=subprocess.PIPE)
+        if process.returncode:
+            print("Encountered an error with that URL. Logging it now.")
+            errorcount += 1
+            log_errors(link, dirname, process.stdout)
 
-    print("Scrape complete. {} files should be available in {dirname}.".format(len(links), **locals()))
+    completed = len(links) - errorcount
+    print("Scrape complete. {completed} files should be available in {dirname}.".format(**locals()))
 
 if __name__ == "__main__":
     main()
