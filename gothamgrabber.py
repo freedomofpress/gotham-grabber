@@ -11,6 +11,7 @@ def get_ist_bookmarks(url, index=1):
     res = requests.get(url + "/" + str(index))
     soup = BeautifulSoup(res.text, "html.parser")
     marks = soup.findAll('a', attrs={'rel':'bookmark'})
+    print("Adding {} links to be scraped.".format(str(len(marks))))
     if len(marks) == 1000:
         marks.extend(get_ist_bookmarks(url, index + 1))        
     return marks
@@ -26,6 +27,7 @@ def scrape_dnainfo_page(url, index=1):
     soup = BeautifulSoup(res.text, "html.parser")
     links = ['https:' + link['href'] for link in soup.findAll('a',
              attrs = {'class':'headline'})]
+    print("Adding {} links to be scraped.".format(str(len(links))))
     if len(links) == 8:
         links.extend(scrape_dnainfo_page(url, index + 1))
     return links
