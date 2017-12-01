@@ -17,7 +17,13 @@ if (filename.endsWith('.php')) {
     await page.setExtraHTTPHeaders({'Accept-Charset': 'utf-8'});
     
     try {
-        await page.goto(url, {'waitUntil':'networkidle'});
+        const res = await page.goto(url, {'waitUntil':'networkidle'});
+        if (res.ok !== true) {
+            console.log('Server returned status code ' + res.code);
+            process.exitCode = 1;
+            await browser.close();
+            return;
+        }
     } catch (e) {
         console.log(e);
         process.exitCode = 1;
@@ -30,15 +36,22 @@ if (filename.endsWith('.php')) {
     }
 
     await page.emulateMedia('screen');
-	try {
-    await page.pdf({displayHeaderFooter: true, margin: {top: '.5in', bottom: '.5in', left: '.5in', right: '.5in'}, printBackground: true, path: outdir + '/' + filename + '.pdf'});
-	} catch (e) {
+
+    let pdf_options = {displayHeaderFooter: true, margin: {top: '.5in', bottom: '.5in', left: '.5in', right: '.5in'}, printBackground: true, path: outdir + '/' + filename + '.pdf'}
+
+    if (url.includes('laweekly.com')) {
+        pdf_options.scale = .75;
+        pdf_options.printBackground = false;
+    }
+
+    try {
+    await page.pdf(pdf_options);
+    } catch (e) {
         console.log(e);
         process.exitCode = 1;
         await browser.close();
         return;
     }
-
 
     await browser.close();
 })();
