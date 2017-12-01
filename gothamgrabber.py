@@ -30,6 +30,19 @@ def scrape_dnainfo_page(url, index=1):
         links.extend(scrape_dnainfo_page(url, index + 1))
     return links
 
+def scrape_laweekly_page(law_id, index=1):
+    scrape_url = "http://www.laweekly.com/authors/authorAjax/" + law_id + \
+                 "?page=" + str(index)
+    res = requests.get(scrape_url).json()
+    if not res['data']:
+        return []
+    soup = BeautifulSoup(res['data'], "html.parser")
+    headlines = soup.findAll('div', {'class':'headline'})
+    links = ['http://laweekly.com' + headline.find('a')['href'] for headline in headlines]
+    print("Adding {} links to be scraped.".format(len(links)))
+    links.extend(scrape_laweekly_page(law_id, index + 1))
+    return links
+
 def log_errors(url, dirname, error_bytes):
     filename = "errors.log"
     processed_error = error_bytes.decode('utf-8').split('\n')[0]
@@ -47,29 +60,43 @@ def main():
 
     if args.url:
         url = args.url
+        spliturl = urllib.parse.urlparse(url)
         
-        slug = url.split("/")[-1]
+        slug = spliturl.path.split("/")[-1]
 
         slug = urllib.parse.unquote(slug)
-        names = slug.lower().split()
-        name = names[-1]
+        
+        if 'ist.com' in spliturl.netloc:
+            print("Scraping Gothamist network page.")
+            links = scrape_ist_page(url)
+            names = slug.lower().split()
+            lastname = names[-1]
+
+        elif 'dnainfo.com' in spliturl.netloc:
+            print("Scraping DNAinfo page. This may take a while.")
+            links = scrape_dnainfo_page(url)
+            names = slug.lower().split("-")
+            lastname = names[-1]
+
+        elif 'laweekly.com' in spliturl.netloc:
+            print("Scraping LAWeekly page.")
+            names = slug.split('-')[:-1]
+            lastname = names[-1]
+            law_id = slug.split('-')[-1]
+            links = scrape_laweekly_page(law_id)
+
+        else:
+            print("""Link must be to a page on one of the following sites:
+            -- Gothamist network
+            -- DNAinfo
+            -- LA Weekly""")
+            return
 
         filename = "-".join(names) + ".txt"
 
-        dirname = os.path.join("out", name)
+        dirname = os.path.join("out", lastname)
 
-        if not(os.path.exists(dirname)):
-            os.makedirs(dirname)
-
-        if 'ist.com' in url:
-            print("Scraping Gothamist network page. This may take take a while.")
-            links = scrape_ist_page(url)
-        elif 'dnainfo.com' in url:
-            print("Scraping DNAinfo page. This may take a while.")
-            links = scrape_dnainfo_page(url)
-        else:
-            print("Link must be to a page in the DNAinfo/Gothamist network.")
-            return
+        os.makedirs(dirname, exist_ok=True)
 
         with open(os.path.join(dirname, filename), "w") as f:
             f.write('\n'.join(links))
