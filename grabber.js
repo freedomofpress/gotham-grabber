@@ -15,6 +15,8 @@ if (filename.endsWith('.php')) {
     const browser = await puppeteer.launch({ignoreHTTPSErrors:true});
     const page = await browser.newPage();
     await page.setExtraHTTPHeaders({'Accept-Charset': 'utf-8'});
+
+	await page.setJavaScriptEnabled(false);
     
     try {
         const res = await page.goto(url, {'waitUntil':'networkidle'});
@@ -40,6 +42,7 @@ if (filename.endsWith('.php')) {
     let pdf_options = {displayHeaderFooter: true, margin: {top: '.5in', bottom: '.5in', left: '.5in', right: '.5in'}, printBackground: true, path: outdir + '/' + filename + '.pdf'}
 
     if (url.includes('laweekly.com')) {
+		await page.setViewport({width: 500, height: 800})
         pdf_options.scale = .75;
         pdf_options.printBackground = false;
     }
