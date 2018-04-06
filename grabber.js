@@ -25,7 +25,7 @@ if (filename.endsWith('-')) {
     const browser = await puppeteer.launch({ignoreHTTPSErrors:true});
     const page = await browser.newPage();
 
-    /* await page.setJavaScriptEnabled(false); */
+    await page.setJavaScriptEnabled(false);
 
     await page.setExtraHTTPHeaders({'Accept-Charset': 'utf-8'});
     
@@ -60,7 +60,11 @@ if (filename.endsWith('-')) {
     if (url.includes('the-toast.net')) {
         await page.addStyleTag({path: 'tweaks/thetoast.css'})
 		await page.setViewport({width:500, height:600});
+    }
 
+    if (url.includes('newsweek.com')) {
+        await page.addStyleTag({path: 'tweaks/newsweek.css'});
+        await page.setViewport({width:500, height: 600});
     }
 
     try {
