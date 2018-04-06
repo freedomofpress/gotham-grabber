@@ -45,6 +45,19 @@ def scrape_laweekly_page(law_id, index=1):
     links.extend(scrape_laweekly_page(law_id, index + 1))
     return links
 
+def scrape_newsweek_page(url, index=0):
+    scrape_url = url + "?page=" + str(index)
+    res = requests.get(scrape_url, headers={'User-Agent':'gothamgrabber'})
+    if not res.text:
+        return []
+    soup = BeautifulSoup(res.text)
+    arts = soup.findAll('article')[1:]
+    headlines = [art.find('h3') for art in arts]
+    links = ['http://newsweek.com' + headline.find('a')['href'] for headline in headlines]
+    print("Adding {} links to be scraped.".format(len(links)))
+    links.extend(scrape_newsweek_page(url, index + 1))
+    return links
+
 def log_errors(url, dirname, error_bytes):
     filename = "errors.log"
     processed_error = error_bytes.decode('utf-8').split('\n')[0]
@@ -87,11 +100,18 @@ def main():
             law_id = slug.split('-')[-1]
             links = scrape_laweekly_page(law_id)
 
+        elif 'newsweek.com' in spliturl.netloc:
+            print("Scraping Newsweek page.")
+            names = slug.split('-')
+            lastname = names[-1]
+            links = scrape_newsweek_page(url)
+
         else:
             print("""Link must be to a page on one of the following sites:
             -- Gothamist network
             -- DNAinfo
-            -- LA Weekly""")
+            -- LA Weekly
+            -- Newsweek""")
             return
 
         filename = "-".join(names) + ".txt"
