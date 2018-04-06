@@ -52,7 +52,6 @@ if (filename.endsWith('-')) {
         await page.addStyleTag({path: 'tweaks/dnainfo.css'})
     }
 
-
     if (url.includes('laweekly.com')) {
         pdf_options.printBackground = false;
         await page.addStyleTag({path: 'tweaks/laweekly.css'})
@@ -61,6 +60,7 @@ if (filename.endsWith('-')) {
     if (url.includes('the-toast.net')) {
         await page.addStyleTag({path: 'tweaks/thetoast.css'})
 		await page.setViewport({width:500, height:600});
+
     }
 
     try {
