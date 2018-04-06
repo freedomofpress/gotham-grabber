@@ -3,7 +3,13 @@ const argv = require('minimist')(process.argv.slice(2));
 
 const url = argv.url;
 const outdir = argv.outdir || '.';
-let offset = url.indexOf('.com');
+if (url.includes('.com')) {
+    offset = url.indexOf('.com');
+} else if (url.includes('.net')) {
+    offset = url.indexOf('.net');
+} else {
+    offset = 3;
+}
 
 let filename = url.substring(offset + 5).replace(/\//g,'-');
 
@@ -11,9 +17,16 @@ if (filename.endsWith('.php')) {
     filename = filename.slice(0,-4);
 }
 
+if (filename.endsWith('-')) {
+    filename = filename.slice(0,-1);
+}
+
 (async () => {
     const browser = await puppeteer.launch({ignoreHTTPSErrors:true});
     const page = await browser.newPage();
+
+    /* await page.setJavaScriptEnabled(false); */
+
     await page.setExtraHTTPHeaders({'Accept-Charset': 'utf-8'});
     
     try {
@@ -31,17 +44,23 @@ if (filename.endsWith('.php')) {
         return;
     }
 
-    if (url.includes('dnainfo.com')) {
-        await page.addStyleTag({path: 'dnainfotweaks.css'})
-    }
-
     await page.emulateMedia('screen');
 
     let pdf_options = {displayHeaderFooter: true, margin: {top: '.5in', bottom: '.5in', left: '.5in', right: '.5in'}, printBackground: true, path: outdir + '/' + filename + '.pdf'}
 
+    if (url.includes('dnainfo.com')) {
+        await page.addStyleTag({path: 'tweaks/dnainfo.css'})
+    }
+
     if (url.includes('laweekly.com')) {
-        pdf_options.scale = .75;
         pdf_options.printBackground = false;
+        await page.addStyleTag({path: 'tweaks/laweekly.css'})
+    }
+
+    if (url.includes('the-toast.net')) {
+        await page.addStyleTag({path: 'tweaks/thetoast.css'})
+		await page.setViewport({width:500, height:600});
+
     }
 
     try {
