@@ -58,6 +58,18 @@ def scrape_newsweek_page(url, index=0):
     links.extend(scrape_newsweek_page(url, index + 1))
     return links
 
+def scrape_bklyner_page(url, index=1):
+    scrape_url = url + "/page/" + str(index)
+    res = requests.get(scrape_url)
+    if res.status_code == 404:
+        return []
+    soup = BeautifulSoup(res.text, 'html.parser')
+    h3s = soup.findAll('h3')
+    links = [h3.find('a')['href'] for h3 in h3s]
+    print("Adding {} links to be scraped.".format(len(links)))
+    links.extend(scrape_bklyner_page(url, index+1))
+    return links
+
 def log_errors(url, dirname, error_bytes):
     filename = "errors.log"
     processed_error = error_bytes.decode('utf-8').split('\n')[0]
@@ -106,12 +118,19 @@ def main():
             lastname = names[-1]
             links = scrape_newsweek_page(url)
 
+        elif 'bklyner.com' in spliturl.netloc:
+            print("Scraping BKLYNER page.")
+            names = [slug, 'bklyner']
+            lastname = slug
+            links = scrape_bklyner_page(url)
+
         else:
             print("""Link must be to a page on one of the following sites:
             -- Gothamist network
             -- DNAinfo
             -- LA Weekly
-            -- Newsweek""")
+            -- Newsweek
+            -- BKLYNER""")
             return
 
         filename = "-".join(names) + ".txt"
