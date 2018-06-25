@@ -27,12 +27,10 @@ if (filename.endsWith('-')) {
 
     await page.setJavaScriptEnabled(false);
 
-    await page.setExtraHTTPHeaders({'Accept-Charset': 'utf-8'});
-    
     try {
-        const res = await page.goto(url, {'waitUntil':'networkidle'});
-        if (res.ok !== true) {
-            console.log('Server returned status code ' + res.code);
+        const res = await page.goto(url);
+        if (res.ok() !== true) {
+            console.log('Server returned status code ' + res.status());
             process.exitCode = 1;
             await browser.close();
             return;
