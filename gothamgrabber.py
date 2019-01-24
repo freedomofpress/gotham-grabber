@@ -9,8 +9,9 @@ from bs4 import BeautifulSoup
 
 def get_ist_bookmarks(url, index=1):
     res = requests.get(url + "/" + str(index))
-    soup = BeautifulSoup(res.text, "html.parser")
+    soup = BeautifulSoup(res.text, 'html.parser')
     marks = soup.findAll('a', attrs={'rel':'bookmark'})
+    print("Adding {} links to be scraped.".format(len(marks)))
     if len(marks) == 1000:
         marks.extend(get_ist_bookmarks(url, index + 1))        
     return marks
@@ -22,10 +23,11 @@ def scrape_ist_page(url):
 
 def scrape_dnainfo_page(url, index=1):
     scrape_url = url + "/page/" + str(index)
-    res = requests.get(scrape_url)
-    soup = BeautifulSoup(res.text, "html.parser")
+    res = requests.get(scrape_url, headers={'User-Agent':'gothamgrabber'})
+    soup = BeautifulSoup(res.text, 'html.parser')
     links = ['https:' + link['href'] for link in soup.findAll('a',
              attrs = {'class':'headline'})]
+    print("Adding {} links to be scraped.".format(len(links)))
     if len(links) == 8:
         links.extend(scrape_dnainfo_page(url, index + 1))
     return links
@@ -36,11 +38,24 @@ def scrape_laweekly_page(law_id, index=1):
     res = requests.get(scrape_url).json()
     if not res['data']:
         return []
-    soup = BeautifulSoup(res['data'], "html.parser")
+    soup = BeautifulSoup(res['data'], 'html.parser')
     headlines = soup.findAll('div', {'class':'headline'})
     links = ['http://laweekly.com' + headline.find('a')['href'] for headline in headlines]
     print("Adding {} links to be scraped.".format(len(links)))
     links.extend(scrape_laweekly_page(law_id, index + 1))
+    return links
+
+def scrape_newsweek_page(url, index=0):
+    scrape_url = url + "?page=" + str(index)
+    res = requests.get(scrape_url, headers={'User-Agent':'gothamgrabber'})
+    if not res.text:
+        return []
+    soup = BeautifulSoup(res.text, 'html.parser')
+    arts = soup.findAll('article')[1:]
+    headlines = [art.find('h3') for art in arts]
+    links = ['http://newsweek.com' + headline.find('a')['href'] for headline in headlines]
+    print("Adding {} links to be scraped.".format(len(links)))
+    links.extend(scrape_newsweek_page(url, index + 1))
     return links
 
 def log_errors(url, dirname, error_bytes):
@@ -51,9 +66,9 @@ def log_errors(url, dirname, error_bytes):
         f.write(processed_error + '\n')
 
 def main():
-    parser = argparse.ArgumentParser(description="A script for scraping and converting to PDF all of the articles by a given author in the DNAinfo/Gothamist network. Accepts either a URL to an online author page or a list of links to articles as input.")
+    parser = argparse.ArgumentParser(description="A script for scraping and converting to PDF all of the articles by a given author in the DNAinfo/Gothamist network, LA Weekly, or Newsweek. Accepts either a URL to an online author page or a list of links to articles as input.")
     infile = parser.add_mutually_exclusive_group(required=True)
-    infile.add_argument("-u","--url", help="The Gothamist network or DNAinfo URL for the author page with the links you want to collect", default=None)
+    infile.add_argument("-u","--url", help="The URL of the author page with the links you want to collect", default=None)
     infile.add_argument("-t","--textfile", help="A list of links for the grabber script to convert to PDFs", default=None)
 
     args = parser.parse_args()
@@ -85,11 +100,18 @@ def main():
             law_id = slug.split('-')[-1]
             links = scrape_laweekly_page(law_id)
 
+        elif 'newsweek.com' in spliturl.netloc:
+            print("Scraping Newsweek page.")
+            names = slug.split('-')
+            lastname = names[-1]
+            links = scrape_newsweek_page(url)
+
         else:
             print("""Link must be to a page on one of the following sites:
             -- Gothamist network
             -- DNAinfo
-            -- LA Weekly""")
+            -- LA Weekly
+            -- Newsweek""")
             return
 
         filename = "-".join(names) + ".txt"
