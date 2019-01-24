@@ -53,6 +53,8 @@ if (filename.endsWith('-')) {
     }
 
     if (url.includes('laweekly.com')) {
+		    await page.setViewport({width: 500, height: 800})
+        pdf_options.scale = .75;
         pdf_options.printBackground = false;
         await page.addStyleTag({path: 'tweaks/laweekly.css'})
     }
