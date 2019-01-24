@@ -23,7 +23,7 @@ def scrape_ist_page(url):
 
 def scrape_dnainfo_page(url, index=1):
     scrape_url = url + "/page/" + str(index)
-    res = requests.get(scrape_url)
+    res = requests.get(scrape_url, headers={'User-Agent':'gothamgrabber'})
     soup = BeautifulSoup(res.text, 'html.parser')
     links = ['https:' + link['href'] for link in soup.findAll('a',
              attrs = {'class':'headline'})]

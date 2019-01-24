@@ -25,14 +25,16 @@ if (filename.endsWith('-')) {
     const browser = await puppeteer.launch({ignoreHTTPSErrors:true});
     const page = await browser.newPage();
 
+    await page.setUserAgent('gothamgrabber (a project of freedom.press)');
+
     await page.setJavaScriptEnabled(false);
 
-    await page.setExtraHTTPHeaders({'Accept-Charset': 'utf-8'});
-    
+    await page.emulateMedia('screen');
+
     try {
-        const res = await page.goto(url, {'waitUntil':'networkidle'});
-        if (res.ok !== true) {
-            console.log('Server returned status code ' + res.code);
+        const res = await page.goto(url, {timeout:3000});
+        if (res.ok() !== true) {
+            console.log('Server returned status code ' + res.status());
             process.exitCode = 1;
             await browser.close();
             return;
@@ -43,8 +45,6 @@ if (filename.endsWith('-')) {
         await browser.close();
         return;
     }
-
-    await page.emulateMedia('screen');
 
     let pdf_options = {displayHeaderFooter: true, margin: {top: '.5in', bottom: '.5in', left: '.5in', right: '.5in'}, printBackground: true, path: outdir + '/' + filename + '.pdf'}
 
