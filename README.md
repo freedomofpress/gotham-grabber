@@ -7,6 +7,7 @@ Since the project's inception, the scripts have been expanded to support author 
 - DNAinfo
 - LA Weekly
 - Newsweek
+- Kinja
 
 An outer Python script, `gothamgrabber.py`, takes an author page URL as an argument with the flag `--url`, creates a directory in the `out` subfolder where it runs, and saves a list of article URLs. (If that list of URLs already exists, `gotham-grabber.py` can take it as input, using the `-t` or `--textfile` option.) It then invokes `grabber.js`, a node script that drives a headless Chrome instance to capture and format articles as PDFs.
 
