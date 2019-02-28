@@ -27,12 +27,12 @@ if (filename.endsWith('-')) {
 
     await page.setUserAgent('gothamgrabber (a project of freedom.press)');
 
-    await page.setJavaScriptEnabled(false);
+    await page.setJavaScriptEnabled(true);
 
-    await page.emulateMedia('screen');
+    await page.emulateMedia('print');
 
     try {
-        const res = await page.goto(url, {timeout:3000});
+        const res = await page.goto(url, {timeout:30000});
         if (res.ok() !== true) {
             console.log('Server returned status code ' + res.status());
             process.exitCode = 1;
