@@ -58,6 +58,20 @@ def scrape_newsweek_page(url, index=0):
     links.extend(scrape_newsweek_page(url, index + 1))
     return links
 
+def scrape_kinja_page(url, start_time=''):
+    scrape_url = url + start_time
+    res = requests.get(scrape_url)
+    soup = BeautifulSoup(res.text, 'html.parser')
+    arts = soup.findAll('h1', {'class':'entry-title'})
+    links = [art.find('a')['href'] for art in arts]
+    print("Adding {} links to be scraped.".format(len(links)))
+    load_more = []
+    load_more = soup.findAll('div', {'class':'load-more__button'})
+    if load_more:
+        links.extend(scrape_kinja_page(url, load_more[0].find('a')['href']))
+
+    return links
+
 def log_errors(url, dirname, error_bytes):
     filename = "errors.log"
     processed_error = error_bytes.decode('utf-8').split('\n')[0]
@@ -106,12 +120,19 @@ def main():
             lastname = names[-1]
             links = scrape_newsweek_page(url)
 
+        elif 'kinja.com' in spliturl.netloc:
+            print("Scraping Kinja page.")
+            names = [slug, 'kinja']
+            lastname = names[0]
+            links = scrape_kinja_page(url)
+
         else:
             print("""Link must be to a page on one of the following sites:
             -- Gothamist network
             -- DNAinfo
             -- LA Weekly
-            -- Newsweek""")
+            -- Newsweek
+            -- Kinja""")
             return
 
         filename = "-".join(names) + ".txt"
