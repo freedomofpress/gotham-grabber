@@ -72,6 +72,21 @@ def scrape_kinja_page(url, start_time=''):
 
     return links
 
+def scrape_villagevoice_page(url):
+    headers={'User-Agent':'gothamgrabber'}
+    res = requests.get(url, headers=headers)
+    soup = BeautifulSoup(res.text, 'html.parser')
+    arts = soup.findAll('div', {'class':'c-postList__post__title'})
+    links = [art.find('a')['href'] for art in arts]
+    print("Adding {} links to be scraped.".format(len(links)))
+    next_button = soup.findAll('a', {'class':'next'})
+    if next_button:
+        next_url = next_button[0]['href']
+        links.extend(scrape_villagevoice_page(next_url))
+
+    return links
+
+
 def log_errors(url, dirname, error_bytes):
     filename = "errors.log"
     processed_error = error_bytes.decode('utf-8').split('\n')[0]
@@ -126,13 +141,20 @@ def main():
             lastname = names[0]
             links = scrape_kinja_page(url)
 
+        elif 'villagevoice.com' in spliturl.netloc:
+            print("Scraping Village Voice page.")
+            names = [slug, 'vv']
+            lastname = names[0]
+            links = scrape_villagevoice_page(url)
+
         else:
             print("""Link must be to a page on one of the following sites:
             -- Gothamist network
             -- DNAinfo
             -- LA Weekly
             -- Newsweek
-            -- Kinja""")
+            -- Kinja
+            -- Village Voice""")
             return
 
         filename = "-".join(names) + ".txt"
