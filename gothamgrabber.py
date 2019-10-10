@@ -58,17 +58,18 @@ def scrape_newsweek_page(url, index=0):
     links.extend(scrape_newsweek_page(url, index + 1))
     return links
 
-def scrape_kinja_page(url, start_time=''):
-    scrape_url = url + start_time
+def scrape_kinja_page(url, start_index=0):
+    scrape_url = url + '?startIndex=' + str(start_index)
     res = requests.get(scrape_url)
     soup = BeautifulSoup(res.text, 'html.parser')
-    arts = soup.findAll('h1', {'class':'entry-title'})
-    links = [art.find('a')['href'] for art in arts]
+    arts = soup.findAll('article')
+    links = [art.findAll('a')[1]['href'] for art in arts]
     print("Adding {} links to be scraped.".format(len(links)))
     load_more = []
-    load_more = soup.findAll('div', {'class':'load-more__button'})
-    if load_more:
-        links.extend(scrape_kinja_page(url, load_more[0].find('a')['href']))
+    load_more = soup.findAll('button')
+    if len(load_more) > 1:
+        start_index += 20
+        links.extend(scrape_kinja_page(url, start_index))
 
     return links
 
