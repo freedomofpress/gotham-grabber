@@ -1,0 +1,39 @@
+.ad-container, #splashy-ad-container-top, .splashy-ad-container, .super-hero {
+    display: none;
+}
+
+#sharingfooter, .sharingfooter, .sc-1bdg1q0-0 {
+    display: none;
+}
+
+.instream-native-video {
+    display:none;
+}
+
+.sc-18b1b2r-6 { /*, .sc-1f6xobn-7 { */
+    display: none;
+}
+
+.sc-1p7jr87-0 {
+    display: none;
+}
+
+.teads-wrapper {
+    display: none;
+}
+
+.movable-ad {
+    display: none;
+}
+
+.js_comments-iframe {
+    display: none;
+}
+
+#taboola-below-article-thumbnails {
+    display:none;
+}
+
+.js_subscribe {
+    display: none;
+}

@@ -21,6 +21,10 @@ if (filename.endsWith('-')) {
     filename = filename.slice(0,-1);
 }
 
+async function timeout(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 (async () => {
     const browser = await puppeteer.launch({ignoreHTTPSErrors:true});
     const page = await browser.newPage();
@@ -29,10 +33,10 @@ if (filename.endsWith('-')) {
 
     await page.setJavaScriptEnabled(true);
 
-    await page.emulateMedia('print');
+    await page.emulateMedia('screen');
 
     try {
-        const res = await page.goto(url, {timeout:30000});
+        const res = await page.goto(url, {waitUntil:'networkidle0'});//{timeout:30000});
         if (res.ok() !== true) {
             console.log('Server returned status code ' + res.status());
             process.exitCode = 1;
@@ -46,14 +50,14 @@ if (filename.endsWith('-')) {
         return;
     }
 
-    let pdf_options = {displayHeaderFooter: true, margin: {top: '.5in', bottom: '.5in', left: '.5in', right: '.5in'}, printBackground: true, path: outdir + '/' + filename + '.pdf'}
+    let pdf_options = {displayHeaderFooter: true, margin: {top: '.75in', bottom: '.75in', left: '.5in', right: '.5in'}, printBackground: true, path: outdir + '/' + filename + '.pdf'}
 
     if (url.includes('dnainfo.com')) {
         await page.addStyleTag({path: 'tweaks/dnainfo.css'})
     }
 
     if (url.includes('laweekly.com')) {
-		    await page.setViewport({width: 500, height: 800})
+        await page.setViewport({width: 500, height: 800})
         pdf_options.scale = .75;
         pdf_options.printBackground = false;
         await page.addStyleTag({path: 'tweaks/laweekly.css'})
@@ -67,7 +71,28 @@ if (filename.endsWith('-')) {
     if (url.includes('newsweek.com')) {
         await page.addStyleTag({path: 'tweaks/newsweek.css'});
         await page.setViewport({width:500, height: 600});
+        pdf_options.scale = .75;
     }
+
+    if (argv.k) {
+        await page.addStyleTag({path: 'tweaks/kinja.css'});
+        await page.setViewport({width:500, height: 600});
+    }
+
+    const height = await page.evaluate(() => document.documentElement.scrollHeight);
+
+    const viewportHeight = await page.viewport().height;
+    let viewportIncr = 0;
+
+    while (viewportIncr + viewportHeight < height - 1000) {
+        await page.evaluate(_viewportHeight => {
+            window.scrollBy(0, _viewportHeight);
+            console.log(_viewportHeight);
+        }, viewportHeight);
+        await timeout(1000);
+        viewportIncr = viewportIncr + viewportHeight;
+    }
+    await timeout(3000);
 
     try {
     await page.pdf(pdf_options);

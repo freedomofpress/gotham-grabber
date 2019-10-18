@@ -63,7 +63,7 @@ def scrape_kinja_page(url, start_index=0):
     res = requests.get(scrape_url)
     soup = BeautifulSoup(res.text, 'html.parser')
     arts = soup.findAll('article')
-    links = [art.findAll('a')[1]['href'] for art in arts]
+    links = [art.find('figure').find('a')['href'] for art in arts if art.find('figure')]
     print("Adding {} links to be scraped.".format(len(links)))
     load_more = []
     load_more = soup.findAll('button')
@@ -101,7 +101,11 @@ def main():
     infile.add_argument("-u","--url", help="The URL of the author page with the links you want to collect", default=None)
     infile.add_argument("-t","--textfile", help="A list of links for the grabber script to convert to PDFs", default=None)
 
+    parser.add_argument("-k","--kinja", action='store_true', help="Specifies that the pages to be grabbed are hosted on a Kinja site")
+
     args = parser.parse_args()
+
+    kinja_command = args.kinja
 
     if args.url:
         url = args.url
@@ -141,6 +145,7 @@ def main():
             names = [slug, 'kinja']
             lastname = names[0]
             links = scrape_kinja_page(url)
+            kinja_command = True
 
         elif 'villagevoice.com' in spliturl.netloc:
             print("Scraping Village Voice page.")
@@ -180,6 +185,8 @@ def main():
         number = links.index(link) + 1
         progress = "(" + str(number) + "/" + str(len(links)) + ")"
         command = ["node", "grabber.js", "--url", link, "--outdir", dirname]
+        if kinja_command:
+            command.insert(2, '-k')
         print("Making PDF of " + link + " " + progress)
         process = subprocess.run(command, stdout=subprocess.PIPE)
         if process.returncode:
