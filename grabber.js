@@ -36,7 +36,7 @@ async function timeout(ms) {
     await page.emulateMedia('screen');
 
     try {
-        const res = await page.goto(url, {waitUntil:'networkidle0'});//{timeout:30000});
+        const res = await page.goto(url, {timeout: 60000, waitUntil:'networkidle0'});//{timeout:30000});
         if (res.ok() !== true) {
             console.log('Server returned status code ' + res.status());
             process.exitCode = 1;
