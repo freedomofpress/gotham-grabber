@@ -2,7 +2,11 @@
     display: none;
 }
 
-#sharingfooter, .sharingfooter, .sc-1bdg1q0-0 {
+#sharingfooter, .sharingfooter, .sc-1bdg1q0-0, .dHZw0k {
+    display: none;
+}
+
+.js_kinja_notification {
     display: none;
 }
 
