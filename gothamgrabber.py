@@ -63,7 +63,7 @@ def scrape_kinja_page(url, start_index=0):
     res = requests.get(scrape_url)
     soup = BeautifulSoup(res.text, 'html.parser')
     arts = soup.findAll('article')
-    links = [art.find('h1').find_parent()['href'] for art in arts if art.find('h1')]
+    links = [art.find('h1').parent['href'] for art in arts if art.find('h1')]
     print("Adding {} links to be scraped.".format(len(links)))
     load_more = []
     load_more = soup.findAll('button')
@@ -177,7 +177,7 @@ def main():
         dirname = os.path.dirname(filename)
 
         with open(filename, "r") as f:
-            links = f.read().splitlines()
+            links = [line for line in f.read().splitlines() if line.startswith('http')]
 
     errorcount = 0
 
