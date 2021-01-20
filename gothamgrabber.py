@@ -89,12 +89,41 @@ def scrape_villagevoice_page(url):
     return links
 
 
+def scrape_grantland_page(url, index=1):
+    scraped_url = url + '/page/' + str(index)
+    print(f'scraping {scraped_url}')
+    res = requests.get(scraped_url)
+    soup = BeautifulSoup(res.text, 'html.parser')
+    headlines = soup.findAll('h3', class_='headline beta')
+    links = [h.find('a')['href'] for h in headlines]
+    if len(links) > 0:
+        print("Adding {} links to be scraped.".format(len(links)))
+        links.extend(scrape_grantland_page(url, index + 1))
+    return links
+
+
+def scrape_the_ringer(url, index=1):
+    scrape_url = url + '/archives/' + str(index)
+    print(f'scraping {scrape_url}')
+    res = requests.get(scrape_url)
+    soup = BeautifulSoup(res.text, 'html.parser')
+    if not res.text:
+        return []
+    headlines = soup.findAll('h2')
+    links = [h.find('a')['href'] for h in headlines if h.find('a')]
+    if len(links) > 0:
+        print("Adding {} links to be scraped.".format(len(links)))
+        links.extend(scrape_the_ringer(url, index + 1))
+    return links
+
+
 def log_errors(url, dirname, error_bytes):
     filename = "errors.log"
     processed_error = error_bytes.decode('utf-8').split('\n')[0]
     with open(os.path.join(dirname, filename), "a") as f:
         f.write(url + '\n')
         f.write(processed_error + '\n')
+
 
 def main():
     parser = argparse.ArgumentParser(description="A script for scraping and converting to PDF all of the articles by a given author in the DNAinfo/Gothamist network, LA Weekly, or Newsweek. Accepts either a URL to an online author page or a list of links to articles as input.")
@@ -111,11 +140,11 @@ def main():
     if args.url:
         url = args.url
         spliturl = urllib.parse.urlparse(url)
-        
+
         slug = spliturl.path.split("/")[-1]
 
         slug = urllib.parse.unquote(slug)
-        
+
         if 'ist.com' in spliturl.netloc:
             print("Scraping Gothamist network page.")
             links = scrape_ist_page(url)
@@ -154,6 +183,19 @@ def main():
             lastname = names[0]
             links = scrape_villagevoice_page(url)
 
+        elif 'theringer.com' in spliturl.netloc:
+            print("Scraping the Ringer page.")
+            names = slug.lower().split("-")
+            lastname = names[-1]
+            links = scrape_the_ringer(url)
+
+        elif 'grantland.com' in spliturl.netloc:
+            print(spliturl.netloc)
+            print("Scraping Grantland page.")
+            names = slug.lower().split("-")
+            lastname = names[-1]
+            links = scrape_grantland_page(url)
+
         else:
             print("""Link must be to a page on one of the following sites:
             -- Gothamist network
@@ -161,12 +203,14 @@ def main():
             -- LA Weekly
             -- Newsweek
             -- Kinja
-            -- Village Voice""")
+            -- Village Voice
+            -- The Ringer
+            -- Grantland""")
             return
 
         filename = "-".join(names) + ".txt"
 
-        dirname = os.path.join("out", lastname)
+        dirname = os.path.join("out", lastname, spliturl.netloc)
 
         os.makedirs(dirname, exist_ok=True)
 
@@ -183,17 +227,23 @@ def main():
     errorcount = 0
 
     for link in links:
-        number = links.index(link) + 1
-        progress = "(" + str(number) + "/" + str(len(links)) + ")"
-        command = ["node", "grabber.js", "--url", link, "--outdir", dirname]
-        if kinja_command:
-            command.insert(2, '-k')
-        print("Making PDF of " + link + " " + progress)
-        process = subprocess.run(command, stdout=subprocess.PIPE)
-        if process.returncode:
-            print("Encountered an error with that URL. Logging it now.")
-            errorcount += 1
-            log_errors(link, dirname, process.stdout)
+        parsed_url = urllib.parse.urlparse(link)
+        file = '-'.join(parsed_url.path.strip('/').split('/'))
+        path = f'./{dirname}/{file}.pdf'
+        if not os.path.isfile(path):
+            number = links.index(link) + 1
+            progress = "(" + str(number) + "/" + str(len(links)) + ")"
+            command = ["node", "grabber.js", "--url", link, "--outdir", dirname]
+            if kinja_command:
+                command.insert(2, '-k')
+            print("Making PDF of " + link + " " + progress)
+            process = subprocess.run(command, stdout=subprocess.PIPE)
+            if process.returncode:
+                print("Encountered an error with that URL. Logging it now.")
+                errorcount += 1
+                log_errors(link, dirname, process.stdout)
+        else:
+            print(f'{path} already exists')
 
     completed = len(links) - errorcount
     print("Scrape complete. {completed} files should be available in {dirname}.".format(**locals()))
