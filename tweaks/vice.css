@@ -1,0 +1,9 @@
+.navbar-wrapper,
+.article__socialize,
+.adph,
+.user-newsletter-signup,
+.recirc-footer,
+.inbody-article,
+footer {
+    display: none;
+}

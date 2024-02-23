@@ -88,6 +88,20 @@ def scrape_villagevoice_page(url):
 
     return links
 
+def scrape_vice_page(url):
+    headers={'User-Agent':'gothamgrabber'}
+    res = requests.get(url, headers=headers)
+    soup = BeautifulSoup(res.text, 'html.parser')
+    arts = soup.findAll('h3', {'class':'vice-card__vice-card-hed'})
+    links = ["http://www.vice.com" + art.find('a')['href'] for art in arts]
+    print("Adding {} links to be scraped.".format(len(links)))
+    next_button = soup.findAll('a', {'class':'pagination-page__next-link'})
+    if next_button:
+        next_url = "http://www.vice.com" + next_button[0]['href']
+        print(next_url, next_button[0])
+        links.extend(scrape_vice_page(next_url))
+
+    return links
 
 def log_errors(url, dirname, error_bytes):
     filename = "errors.log"
@@ -154,6 +168,12 @@ def main():
             lastname = names[0]
             links = scrape_villagevoice_page(url)
 
+        elif 'vice.com' in spliturl.netloc:
+            print("Scraping Vice page.")
+            names = [slug, 'vice']
+            lastname = names[0]
+            links = scrape_vice_page(url)
+
         else:
             print("""Link must be to a page on one of the following sites:
             -- Gothamist network
@@ -161,7 +181,8 @@ def main():
             -- LA Weekly
             -- Newsweek
             -- Kinja
-            -- Village Voice""")
+            -- Village Voice
+            -- Vice""")
             return
 
         filename = "-".join(names) + ".txt"
