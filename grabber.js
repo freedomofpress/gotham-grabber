@@ -74,6 +74,10 @@ async function timeout(ms) {
         pdf_options.scale = .75;
     }
 
+    if (url.includes('vice.com')) {
+        await page.addStyleTag({path: 'tweaks/vice.css'});
+    }
+
     if (argv.k) {
         await page.addStyleTag({path: 'tweaks/kinja.css'});
         await page.setViewport({width:500, height: 600});
