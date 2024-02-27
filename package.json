@@ -4,7 +4,7 @@
   "description": "This is very ugly but it works for now. grabber.js is a script that uses Puppeteer to direct a headless Chrome to create a nice-looking PDF of a given url. It requires the arguments `--url`, the URL of the site you want to turn into a PDF, and `--outdir`, an existing directory in which to place that URL.",
   "main": "grabber.js",
   "dependencies": {
-    "minimist": "^1.2.0",
+    "minimist": "^1.2.6",
     "puppeteer": "^1.20.0"
   },
   "devDependencies": {},
